@@ -61,6 +61,7 @@ func Lookup(op byte) (*Definition, error) {
 	return def, nil
 }
 
+// Make generates a instruction in a byte slice.
 func Make(op Opcode, operands ...int) []byte {
 	def, ok := definitions[op]
 	if !ok {
