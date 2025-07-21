@@ -21,7 +21,7 @@ func TestIntegerArithmetic(t *testing.T) {
 	tests := []vmTestCase{
 		{"1", &object.Integer{Value: 1}},
 		{"2", &object.Integer{Value: 2}},
-		{"1 + 2", &object.Integer{Value: 2}},
+		{"1 + 2", &object.Integer{Value: 3}},
 	}
 	runVmTests(t, tests)
 }

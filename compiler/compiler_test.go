@@ -21,9 +21,13 @@ type compilerTestCase struct {
 func TestIntegerArithmetic(t *testing.T) {
 	tests := []compilerTestCase{
 		{
-			input:            "1 + 2",
-			wantConstants:    []object.Object{&object.Integer{Value: 1}, &object.Integer{Value: 2}},
-			wantInstructions: concatInstructions(code.Make(code.OpConstant, 0), code.Make(code.OpConstant, 1)),
+			input:         "1 + 2",
+			wantConstants: []object.Object{&object.Integer{Value: 1}, &object.Integer{Value: 2}},
+			wantInstructions: concatInstructions(
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpAdd),
+			),
 		},
 	}
 	runCompilerTests(t, tests)
