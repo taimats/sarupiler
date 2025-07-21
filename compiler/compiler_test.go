@@ -8,24 +8,22 @@ import (
 	"github.com/taimats/sarupiler/compiler"
 	"github.com/taimats/sarupiler/monkey/ast"
 	"github.com/taimats/sarupiler/monkey/lexer"
+	"github.com/taimats/sarupiler/monkey/object"
 	"github.com/taimats/sarupiler/monkey/parser"
 )
 
 type compilerTestCase struct {
 	input            string
-	wantConstants    []any
-	wantInstructions []code.Instructions
+	wantConstants    []object.Object
+	wantInstructions code.Instructions
 }
 
 func TestIntegerArithmetic(t *testing.T) {
 	tests := []compilerTestCase{
 		{
-			input:         "1 + 2",
-			wantConstants: []any{1, 2},
-			wantInstructions: []code.Instructions{
-				code.Make(code.OpConstant, 0),
-				code.Make(code.OpConstant, 1),
-			},
+			input:            "1 + 2",
+			wantConstants:    []object.Object{&object.Integer{Value: 1}, &object.Integer{Value: 2}},
+			wantInstructions: concatInstructions(code.Make(code.OpConstant, 0), code.Make(code.OpConstant, 1)),
 		},
 	}
 	runCompilerTests(t, tests)
@@ -54,4 +52,12 @@ func parse(input string) *ast.Program {
 	l := lexer.New(input)
 	p := parser.New(l)
 	return p.ParseProgram()
+}
+
+func concatInstructions(ins ...code.Instructions) code.Instructions {
+	out := code.Instructions{}
+	for _, item := range ins {
+		out = append(out, item...)
+	}
+	return out
 }
