@@ -16,17 +16,10 @@ func TestMake(t *testing.T) {
 		{code.OpConstant, []int{65534}, []byte{byte(code.OpConstant), 255, 254}},
 		{code.OpAdd, []int{}, []byte{byte(code.OpAdd)}},
 	}
-
+	a := assert.New(t)
 	for _, tt := range tests {
 		got := code.Make(tt.op, tt.operands...)
-		if len(got) != len(tt.want) {
-			t.Errorf("wrong length: (got: %d, want: %d)", len(got), len(tt.want))
-		}
-		for i, b := range got {
-			if b != tt.want[i] {
-				t.Errorf("wrong byte: (got: %d, want: %d)", b, tt.want[i])
-			}
-		}
+		a.Equal(tt.want, got)
 	}
 }
 
