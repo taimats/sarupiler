@@ -70,6 +70,15 @@ func TestIntegerArithmetic(t *testing.T) {
 				code.Make(code.OpPop),
 			),
 		},
+		{
+			input:         "-1",
+			wantConstants: []object.Object{&object.Integer{Value: 1}},
+			wantInstructions: concatInstructions(
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpMinus),
+				code.Make(code.OpPop),
+			),
+		},
 	}
 	runCompilerTests(t, tests)
 }
@@ -185,15 +194,15 @@ func TestBooleanExpressions(t *testing.T) {
 				code.Make(code.OpPop),
 			),
 		},
-		// {
-		// 	input:         "!true",
-		// 	wantConstants: []object.Object{},
-		// 	wantInstructions: concatInstructions(
-		// 		code.Make(code.OpTrue),
-		// 		code.Make(code.OpBang),
-		// 		code.Make(code.OpPop),
-		// 	),
-		// },
+		{
+			input:         "!true",
+			wantConstants: []object.Object{},
+			wantInstructions: concatInstructions(
+				code.Make(code.OpTrue),
+				code.Make(code.OpBang),
+				code.Make(code.OpPop),
+			),
+		},
 	}
 	runCompilerTests(t, tests)
 }
