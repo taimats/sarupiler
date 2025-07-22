@@ -39,13 +39,11 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
-		case code.OpAdd:
-			right := vm.pop()
-			left := vm.pop()
-			rv := right.(*object.Integer).Value
-			lV := left.(*object.Integer).Value
-			result := rv + lV
-			vm.push(&object.Integer{Value: result})
+		case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv:
+			err := vm.executeBinaryOperation(op)
+			if err != nil {
+				return err
+			}
 		case code.OpPop:
 			vm.pop()
 		}
@@ -77,4 +75,33 @@ func (vm *VM) StackTop() object.Object {
 
 func (vm *VM) LastPoppedStackElem() object.Object {
 	return vm.stack[vm.sp]
+}
+
+func (vm *VM) executeBinaryOperation(op code.Opcode) error {
+	right := vm.pop()
+	left := vm.pop()
+	if right.Type() == object.INTEGER_OBJ && left.Type() == object.INTEGER_OBJ {
+		return vm.executeBinaryIntegerOperation(op, left, right)
+	}
+	return fmt.Errorf("invalid operand type")
+}
+
+func (vm *VM) executeBinaryIntegerOperation(op code.Opcode, left, right object.Object) error {
+	lv := left.(*object.Integer).Value
+	rv := right.(*object.Integer).Value
+
+	var result int64
+	switch op {
+	case code.OpAdd:
+		result = lv + rv
+	case code.OpSub:
+		result = lv - rv
+	case code.OpMul:
+		result = lv * rv
+	case code.OpDiv:
+		result = lv / rv
+	default:
+		return fmt.Errorf("unknown integer operator: %d", op)
+	}
+	return vm.push(&object.Integer{Value: result})
 }
