@@ -1,6 +1,7 @@
 package compiler_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,6 +14,7 @@ import (
 )
 
 type compilerTestCase struct {
+	name             string
 	input            string
 	wantConstants    []object.Object
 	wantInstructions code.Instructions
@@ -21,12 +23,25 @@ type compilerTestCase struct {
 func TestIntegerArithmetic(t *testing.T) {
 	tests := []compilerTestCase{
 		{
+			name:          "OpAdd",
 			input:         "1 + 2",
 			wantConstants: []object.Object{&object.Integer{Value: 1}, &object.Integer{Value: 2}},
 			wantInstructions: concatInstructions(
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
 				code.Make(code.OpAdd),
+				code.Make(code.OpPop),
+			),
+		},
+		{
+			name:          "OpPop",
+			input:         "1; 2",
+			wantConstants: []object.Object{&object.Integer{Value: 1}, &object.Integer{Value: 2}},
+			wantInstructions: concatInstructions(
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpPop),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpPop),
 			),
 		},
 	}
@@ -38,17 +53,20 @@ func runCompilerTests(t *testing.T, tests []compilerTestCase) {
 	a := assert.New(t)
 
 	for _, tt := range tests {
-		program := parse(tt.input)
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			program := parse(tt.input)
 
-		compiler := compiler.New()
-		err := compiler.Compile(program)
-		if err != nil {
-			t.Fatalf("compiler failed to Compile: (error: %s)", err)
-		}
+			compiler := compiler.New()
+			err := compiler.Compile(program)
+			if err != nil {
+				t.Fatalf("compiler failed to Compile: (error: %s)", err)
+			}
 
-		bytecode := compiler.Bytecode()
-		a.Equal(tt.wantInstructions, bytecode.Instructions)
-		a.Equal(tt.wantConstants, bytecode.Constants)
+			bytecode := compiler.Bytecode()
+			a.Equal(tt.wantInstructions, bytecode.Instructions, fmt.Sprintf("instructions not equal in %s:", tt.name))
+			a.Equal(tt.wantConstants, bytecode.Constants, fmt.Sprintf("constants not equal in %s:", tt.name))
+		})
 	}
 }
 

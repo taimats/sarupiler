@@ -34,6 +34,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		if err != nil {
 			return err
 		}
+		c.emit(code.OpPop)
 	case *ast.InfixExpression:
 		err := c.Compile(node.Left)
 		if err != nil {
@@ -75,8 +76,9 @@ func (c *Compiler) addConstant(obj object.Object) int {
 }
 
 func (c *Compiler) addInstruction(ins []byte) int {
+	posNewInstruction := len(c.instructions)
 	c.instructions = append(c.instructions, ins...)
-	return len(c.instructions) - 1
+	return posNewInstruction
 }
 
 type Bytecode struct {
