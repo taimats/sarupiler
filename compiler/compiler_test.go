@@ -125,6 +125,75 @@ func TestBooleanExpressions(t *testing.T) {
 				code.Make(code.OpPop),
 			),
 		},
+		{
+			input:         "1 > 2",
+			wantConstants: []object.Object{&object.Integer{Value: 1}, &object.Integer{Value: 2}},
+			wantInstructions: concatInstructions(
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpGreaterThan),
+				code.Make(code.OpPop),
+			),
+		},
+		{
+			input:         "1 < 2",
+			wantConstants: []object.Object{&object.Integer{Value: 2}, &object.Integer{Value: 1}},
+			wantInstructions: concatInstructions(
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpGreaterThan),
+				code.Make(code.OpPop),
+			),
+		},
+		{
+			input:         "1 == 2",
+			wantConstants: []object.Object{&object.Integer{Value: 1}, &object.Integer{Value: 2}},
+			wantInstructions: concatInstructions(
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpEqual),
+				code.Make(code.OpPop),
+			),
+		},
+		{
+			input:         "1 != 2",
+			wantConstants: []object.Object{&object.Integer{Value: 1}, &object.Integer{Value: 2}},
+			wantInstructions: concatInstructions(
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpNotEqual),
+				code.Make(code.OpPop),
+			),
+		},
+		{
+			input:         "true == false",
+			wantConstants: []object.Object{},
+			wantInstructions: concatInstructions(
+				code.Make(code.OpTrue),
+				code.Make(code.OpFalse),
+				code.Make(code.OpEqual),
+				code.Make(code.OpPop),
+			),
+		},
+		{
+			input:         "true != false",
+			wantConstants: []object.Object{},
+			wantInstructions: concatInstructions(
+				code.Make(code.OpTrue),
+				code.Make(code.OpFalse),
+				code.Make(code.OpNotEqual),
+				code.Make(code.OpPop),
+			),
+		},
+		// {
+		// 	input:         "!true",
+		// 	wantConstants: []object.Object{},
+		// 	wantInstructions: concatInstructions(
+		// 		code.Make(code.OpTrue),
+		// 		code.Make(code.OpBang),
+		// 		code.Make(code.OpPop),
+		// 	),
+		// },
 	}
 	runCompilerTests(t, tests)
 }

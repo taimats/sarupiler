@@ -69,9 +69,34 @@ func parse(input string) *ast.Program {
 }
 
 func TestBooleanExpressions(t *testing.T) {
+	True := &object.Boolean{Value: true}
+	False := &object.Boolean{Value: false}
 	tests := []vmTestCase{
-		{"true", &object.Boolean{Value: true}},
-		{"false", &object.Boolean{Value: false}},
+		{"true", True},
+		{"false", False},
+		{"1 < 2", True},
+		{"1 > 2", False},
+		{"1 < 1", False},
+		{"1 > 1", False},
+		{"1 == 1", True},
+		{"1 != 1", False},
+		{"1 == 2", False},
+		{"1 != 2", True},
+		{"true == true", True},
+		{"false == false", True},
+		{"true == false", False},
+		{"true != false", True},
+		{"false != true", True},
+		{"(1 < 2) == true", True},
+		{"(1 < 2) == false", False},
+		{"(1 > 2) == true", False},
+		{"(1 > 2) == false", True},
+		// {"!true", false},
+		// {"!false", true},
+		// {"!5", false},
+		// {"!!true", true},
+		// {"!!false", false},
+		// {"!!5", true},
 	}
 	runVmTests(t, tests)
 }
