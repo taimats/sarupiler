@@ -67,3 +67,11 @@ func parse(input string) *ast.Program {
 	p := parser.New(l)
 	return p.ParseProgram()
 }
+
+func TestBooleanExpressions(t *testing.T) {
+	tests := []vmTestCase{
+		{"true", &object.Boolean{Value: true}},
+		{"false", &object.Boolean{Value: false}},
+	}
+	runVmTests(t, tests)
+}
