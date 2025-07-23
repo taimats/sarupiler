@@ -88,6 +88,9 @@ func Lookup(op byte) (*Definition, error) {
 }
 
 // Make generates a instruction in a byte slice.
+// Operands in the arguments represent an index, the role of which is to tell a virtual machine
+// where it should retrieve necessary data when running. That means an operand is just a "constant for reference"
+// in this package.
 func Make(op Opcode, operands ...int) []byte {
 	def, ok := definitions[op]
 	if !ok {
