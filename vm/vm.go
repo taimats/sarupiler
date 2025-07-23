@@ -31,12 +31,13 @@ func New(bytecode *compiler.Bytecode) *VM {
 }
 
 func (vm *VM) Run() error {
-	for i := 0; i < len(vm.instrcutions); i++ {
-		op := code.Opcode(vm.instrcutions[i])
+	//ip is instruction pointer.
+	for ip := 0; ip < len(vm.instrcutions); ip++ {
+		op := code.Opcode(vm.instrcutions[ip])
 		switch op {
 		case code.OpConstant:
-			constIndex := code.ReadUint16(vm.instrcutions[i+1:])
-			i += 2 //advancing by 2Bytes
+			constIndex := code.ReadUint16(vm.instrcutions[ip+1:])
+			ip += 2 //advancing by 2Bytes
 
 			err := vm.push(vm.constants[constIndex])
 			if err != nil {
@@ -74,9 +75,28 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+		case code.OpJump:
+			pos := int(code.ReadUint16(vm.instrcutions[ip+1:]))
+			ip = pos - 1
+		case code.OpJumpNotTruthy:
+			pos := int(code.ReadUint16(vm.instrcutions[ip+1:]))
+			ip += 2
+			condition := vm.pop()
+			if !isTruthy(condition) {
+				ip = pos - 1
+			}
 		}
 	}
 	return nil
+}
+
+func isTruthy(obj object.Object) bool {
+	switch obj := obj.(type) {
+	case *object.Boolean:
+		return obj.Value
+	default:
+		return true
+	}
 }
 
 func (vm *VM) push(o object.Object) error {
