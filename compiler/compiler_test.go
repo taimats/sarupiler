@@ -290,3 +290,27 @@ func TestGlobalLetStatements(t *testing.T) {
 	}
 	runCompilerTests(t, tests)
 }
+
+func TestStringExpressions(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input:         `"monkey"`,
+			wantConstants: []object.Object{&object.String{Value: "monkey"}},
+			wantInstructions: concatInstructions(
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpPop),
+			),
+		},
+		{
+			input:         `"mon" + "key"`,
+			wantConstants: []object.Object{&object.String{Value: "mon"}, &object.String{Value: "key"}},
+			wantInstructions: concatInstructions(
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpAdd),
+				code.Make(code.OpPop),
+			),
+		},
+	}
+	runCompilerTests(t, tests)
+}

@@ -157,8 +157,14 @@ func (vm *VM) LastPoppedStackElem() object.Object {
 func (vm *VM) executeBinaryOperation(op code.Opcode) error {
 	right := vm.pop()
 	left := vm.pop()
-	if right.Type() == object.INTEGER_OBJ && left.Type() == object.INTEGER_OBJ {
+	rType := right.Type()
+	lType := left.Type()
+
+	if rType == object.INTEGER_OBJ && lType == object.INTEGER_OBJ {
 		return vm.executeBinaryIntegerOperation(op, left, right)
+	}
+	if rType == object.STRING_OBJ && lType == object.STRING_OBJ {
+		return vm.executeBinaryStringOperation(op, left, right)
 	}
 	return fmt.Errorf("invalid operand type")
 }
@@ -181,6 +187,15 @@ func (vm *VM) executeBinaryIntegerOperation(op code.Opcode, left, right object.O
 		return fmt.Errorf("unknown integer operator: %d", op)
 	}
 	return vm.push(&object.Integer{Value: result})
+}
+
+func (vm *VM) executeBinaryStringOperation(op code.Opcode, left, right object.Object) error {
+	if op != code.OpAdd {
+		return fmt.Errorf("unknown string operator: %d", op)
+	}
+	lv := left.(*object.String).Value
+	rv := right.(*object.String).Value
+	return vm.push(&object.String{Value: lv + rv})
 }
 
 func (vm *VM) executeComparison(op code.Opcode) error {
