@@ -26,6 +26,7 @@ const (
 	OpGetGlobal
 	OpSetGlobal
 	OpArray
+	OpHash
 )
 
 type Instructions []byte
@@ -89,6 +90,7 @@ var definitions = map[Opcode]*Definition{
 	OpGetGlobal:     {"OpNull", []int{2}},
 	OpSetGlobal:     {"OpNull", []int{2}},
 	OpArray:         {"OpArray", []int{2}}, //the operand of OpArray is the number of elements of Array object.
+	OpHash:          {"OpHash", []int{2}},  //the operand of OpHash is the number of keys and values(2x mroe pairs).
 }
 
 func Lookup(op byte) (*Definition, error) {

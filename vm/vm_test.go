@@ -156,3 +156,39 @@ func TestArrayLiterals(t *testing.T) {
 	}
 	runVmTests(t, tests)
 }
+
+func TestHashLiterals(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			"{}", &object.Hash{Pairs: map[object.HashKey]object.HashPair{}},
+		},
+		{
+			"{1: 2, 2: 3}",
+			&object.Hash{Pairs: map[object.HashKey]object.HashPair{
+				newHashKey(object.INTEGER_OBJ, uint64(1)): newHashPair(&object.Integer{Value: 1}, &object.Integer{Value: 2}),
+				newHashKey(object.INTEGER_OBJ, uint64(2)): newHashPair(&object.Integer{Value: 2}, &object.Integer{Value: 3}),
+			}},
+		},
+		{
+			"{1 + 1: 2 * 2, 3 + 3: 4 * 4}",
+			&object.Hash{Pairs: map[object.HashKey]object.HashPair{
+				newHashKey(object.INTEGER_OBJ, uint64(2)): newHashPair(&object.Integer{Value: 2}, &object.Integer{Value: 4}),
+				newHashKey(object.INTEGER_OBJ, uint64(6)): newHashPair(&object.Integer{Value: 6}, &object.Integer{Value: 16}),
+			}},
+		},
+	}
+	runVmTests(t, tests)
+}
+
+func newHashPair(key, value object.Object) object.HashPair {
+	return object.HashPair{
+		Key:   key,
+		Value: value,
+	}
+}
+func newHashKey(objType object.ObjectType, value uint64) object.HashKey {
+	return object.HashKey{
+		Type:  objType,
+		Value: value,
+	}
+}
