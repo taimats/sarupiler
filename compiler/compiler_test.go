@@ -314,3 +314,56 @@ func TestStringExpressions(t *testing.T) {
 	}
 	runCompilerTests(t, tests)
 }
+
+func TestArrayLiterals(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input:         `[]`,
+			wantConstants: []object.Object{},
+			wantInstructions: concatInstructions(
+				code.Make(code.OpArray, 0),
+				code.Make(code.OpPop),
+			),
+		},
+		{
+			input: `[1, 2, 3]`,
+			wantConstants: []object.Object{
+				&object.Integer{Value: 1},
+				&object.Integer{Value: 2},
+				&object.Integer{Value: 3},
+			},
+			wantInstructions: concatInstructions(
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpArray, 3),
+				code.Make(code.OpPop),
+			),
+		},
+		{
+			input: `[1 + 2, 3 - 4, 5 * 6]`,
+			wantConstants: []object.Object{
+				&object.Integer{Value: 1},
+				&object.Integer{Value: 2},
+				&object.Integer{Value: 3},
+				&object.Integer{Value: 4},
+				&object.Integer{Value: 5},
+				&object.Integer{Value: 6},
+			},
+			wantInstructions: concatInstructions(
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpAdd),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpSub),
+				code.Make(code.OpConstant, 4),
+				code.Make(code.OpConstant, 5),
+				code.Make(code.OpMul),
+				code.Make(code.OpArray, 3),
+				code.Make(code.OpPop),
+			),
+		},
+	}
+	runCompilerTests(t, tests)
+}

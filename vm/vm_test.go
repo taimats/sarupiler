@@ -135,3 +135,24 @@ func TestStringExpressions(t *testing.T) {
 	}
 	runVmTests(t, tests)
 }
+
+func TestArrayLiterals(t *testing.T) {
+	tests := []vmTestCase{
+		{`[]`, &object.Array{Elements: []object.Object{}}},
+		{`[1, 2, 3]`, &object.Array{
+			Elements: []object.Object{
+				&object.Integer{Value: 1},
+				&object.Integer{Value: 2},
+				&object.Integer{Value: 3},
+			}},
+		},
+		{`[1 + 2, 3 - 4, 5 * 6]`, &object.Array{
+			Elements: []object.Object{
+				&object.Integer{Value: 3},
+				&object.Integer{Value: -1},
+				&object.Integer{Value: 30},
+			}},
+		},
+	}
+	runVmTests(t, tests)
+}
