@@ -10,6 +10,7 @@ import (
 	"github.com/taimats/sarupiler/monkey/lexer"
 	"github.com/taimats/sarupiler/monkey/object"
 	"github.com/taimats/sarupiler/monkey/parser"
+	obj "github.com/taimats/sarupiler/object"
 )
 
 type compilerTestCase struct {
@@ -470,4 +471,88 @@ func TestIndexExpressions(t *testing.T) {
 		},
 	}
 	runCompilerTests(t, tests)
+}
+
+func TestFunctions(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `fn() { return 5 + 10 }`,
+			wantConstants: []object.Object{
+				&object.Integer{Value: 5},
+				&object.Integer{Value: 10},
+				&obj.CompiledFunction{
+					Instructions: concatInstructions(
+						code.Make(code.OpConstant, 0),
+						code.Make(code.OpConstant, 1),
+						code.Make(code.OpAdd),
+						code.Make(code.OpReturnValue),
+					),
+				},
+			},
+			wantInstructions: concatInstructions(
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpPop),
+			),
+		},
+		// {
+		// 	input: `fn() { 5 + 10 }`,
+		// 	wantConstants: []object.Object{
+		// 		&object.Integer{Value: 5},
+		// 		&object.Integer{Value: 10},
+		// 		&obj.CompiledFunction{
+		// 			Instructions: concatInstructions(
+		// 				code.Make(code.OpConstant, 0),
+		// 				code.Make(code.OpConstant, 1),
+		// 				code.Make(code.OpAdd),
+		// 				code.Make(code.OpReturnValue),
+		// 			),
+		// 		},
+		// 	},
+		// 	wantInstructions: concatInstructions(
+		// 		code.Make(code.OpConstant, 2),
+		// 		code.Make(code.OpPop),
+		// 	),
+		// },
+		// {
+		// 	input: `fn() { 1; 2 }`,
+		// 	wantConstants: []object.Object{
+		// 		&object.Integer{Value: 1},
+		// 		&object.Integer{Value: 2},
+		// 		&obj.CompiledFunction{
+		// 			Instructions: concatInstructions(
+		// 				code.Make(code.OpConstant, 0),
+		// 				code.Make(code.OpPop),
+		// 				code.Make(code.OpConstant, 1),
+		// 				code.Make(code.OpReturnValue),
+		// 			),
+		// 		},
+		// 	},
+		// 	wantInstructions: concatInstructions(
+		// 		code.Make(code.OpConstant, 2),
+		// 		code.Make(code.OpPop),
+		// 	),
+		// },
+	}
+	runCompilerTests(t, tests)
+}
+
+func TestCompilerScopes(t *testing.T) {
+	a := assert.New(t)
+	c := compiler.New()
+
+	compiler.Emit(c, code.OpMul)
+	compiler.EnterScope(c)
+	a.Equal(1, compiler.ScopeIndex(c), "wrong scopeIndex after Emit(code.OpMul)")
+
+	compiler.Emit(c, code.OpSub)
+	a.Equal(1, len(compiler.CurrentIns(c)), "wrong instructions length after Emit(code.OpSub)")
+	a.Equal(code.OpSub, compiler.LastIns(c).Opcode, "wrong Opcode after Emit(code.OpSub)")
+
+	compiler.LeaveScope(c)
+	a.Equal(0, compiler.ScopeIndex(c), "wrong scopeIndex after leaveScope")
+
+	compiler.Emit(c, code.OpAdd)
+	a.Equal(2, len(compiler.CurrentIns(c)), "wrong instructions length after Emit(code.OpAdd)")
+	a.Equal(code.OpAdd, compiler.LastIns(c).Opcode, "wrong LastIns Opcode after Emit(code.OpAdd)")
+	a.Equal(code.OpMul, compiler.PrevIns(c).Opcode, "wrong PrevIns Opcode after Emit(code.OpAdd)")
 }
