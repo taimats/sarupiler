@@ -28,6 +28,9 @@ const (
 	OpArray
 	OpHash
 	OpIndex
+	OpCall
+	OpReturnValue
+	OpReturn
 )
 
 type Instructions []byte
@@ -88,11 +91,14 @@ var definitions = map[Opcode]*Definition{
 	OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
 	OpJump:          {"OpJump", []int{2}},
 	OpNull:          {"OpNull", []int{}},
-	OpGetGlobal:     {"OpNull", []int{2}},
-	OpSetGlobal:     {"OpNull", []int{2}},
+	OpGetGlobal:     {"OpGetGlobal", []int{2}},
+	OpSetGlobal:     {"OpSetGlobal", []int{2}},
 	OpArray:         {"OpArray", []int{2}}, //the operand of OpArray is the number of elements of Array object.
 	OpHash:          {"OpHash", []int{2}},  //the operand of OpHash is the number of keys and values(2x mroe pairs).
 	OpIndex:         {"OpIndex", []int{}},
+	OpCall:          {"OpCall", []int{}},
+	OpReturnValue:   {"OpReturnValue", []int{}},
+	OpReturn:        {"OpReturn", []int{}},
 }
 
 func Lookup(op byte) (*Definition, error) {
