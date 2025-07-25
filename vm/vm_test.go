@@ -192,3 +192,19 @@ func newHashKey(objType object.ObjectType, value uint64) object.HashKey {
 		Value: value,
 	}
 }
+
+func TestIndexExpressions(t *testing.T) {
+	tests := []vmTestCase{
+		{"[1, 2, 3][1]", &object.Integer{Value: 2}},
+		{"[1, 2, 3][0 + 2]", &object.Integer{Value: 3}},
+		{"[[1, 1, 1]][0][0]", &object.Integer{Value: 1}},
+		{"[][0]", vm.Null},
+		{"[1, 2, 3][99]", vm.Null},
+		{"[1][-1]", vm.Null},
+		{"{1: 1, 2: 2}[1]", &object.Integer{Value: 1}},
+		{"{1: 1, 2: 2}[2]", &object.Integer{Value: 2}},
+		{"{1: 1}[0]", vm.Null},
+		{"{}[0]", vm.Null},
+	}
+	runVmTests(t, tests)
+}
