@@ -1,6 +1,7 @@
 package compiler_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -99,7 +100,7 @@ func runCompilerTests(t *testing.T, tests []compilerTestCase) {
 
 		bytecode := compiler.Bytecode()
 		a.Equal(tt.wantInstructions, bytecode.Instructions, bytecode.Instructions.String())
-		a.Equal(tt.wantConstants, bytecode.Constants)
+		a.Equal(tt.wantConstants, bytecode.Constants, printConsts(tt.wantConstants, bytecode.Constants))
 	}
 }
 
@@ -107,6 +108,21 @@ func parse(input string) *ast.Program {
 	l := lexer.New(input)
 	p := parser.New(l)
 	return p.ParseProgram()
+}
+
+func printConsts(want, got []object.Object) string {
+	var buf strings.Builder
+	buf.WriteString("{ want }\n")
+	for _, o := range want {
+		buf.WriteString(o.Inspect())
+		buf.WriteString("\n")
+	}
+	buf.WriteString("{ got }\n")
+	for _, o := range got {
+		buf.WriteString(o.Inspect())
+		buf.WriteString("\n")
+	}
+	return buf.String()
 }
 
 func concatInstructions(ins ...code.Instructions) code.Instructions {
@@ -494,44 +510,44 @@ func TestFunctions(t *testing.T) {
 				code.Make(code.OpPop),
 			),
 		},
-		// {
-		// 	input: `fn() { 5 + 10 }`,
-		// 	wantConstants: []object.Object{
-		// 		&object.Integer{Value: 5},
-		// 		&object.Integer{Value: 10},
-		// 		&obj.CompiledFunction{
-		// 			Instructions: concatInstructions(
-		// 				code.Make(code.OpConstant, 0),
-		// 				code.Make(code.OpConstant, 1),
-		// 				code.Make(code.OpAdd),
-		// 				code.Make(code.OpReturnValue),
-		// 			),
-		// 		},
-		// 	},
-		// 	wantInstructions: concatInstructions(
-		// 		code.Make(code.OpConstant, 2),
-		// 		code.Make(code.OpPop),
-		// 	),
-		// },
-		// {
-		// 	input: `fn() { 1; 2 }`,
-		// 	wantConstants: []object.Object{
-		// 		&object.Integer{Value: 1},
-		// 		&object.Integer{Value: 2},
-		// 		&obj.CompiledFunction{
-		// 			Instructions: concatInstructions(
-		// 				code.Make(code.OpConstant, 0),
-		// 				code.Make(code.OpPop),
-		// 				code.Make(code.OpConstant, 1),
-		// 				code.Make(code.OpReturnValue),
-		// 			),
-		// 		},
-		// 	},
-		// 	wantInstructions: concatInstructions(
-		// 		code.Make(code.OpConstant, 2),
-		// 		code.Make(code.OpPop),
-		// 	),
-		// },
+		{
+			input: `fn() { 5 + 10 }`,
+			wantConstants: []object.Object{
+				&object.Integer{Value: 5},
+				&object.Integer{Value: 10},
+				&obj.CompiledFunction{
+					Instructions: concatInstructions(
+						code.Make(code.OpConstant, 0),
+						code.Make(code.OpConstant, 1),
+						code.Make(code.OpAdd),
+						code.Make(code.OpReturnValue),
+					),
+				},
+			},
+			wantInstructions: concatInstructions(
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpPop),
+			),
+		},
+		{
+			input: `fn() { 1; 2 }`,
+			wantConstants: []object.Object{
+				&object.Integer{Value: 1},
+				&object.Integer{Value: 2},
+				&obj.CompiledFunction{
+					Instructions: concatInstructions(
+						code.Make(code.OpConstant, 0),
+						code.Make(code.OpPop),
+						code.Make(code.OpConstant, 1),
+						code.Make(code.OpReturnValue),
+					),
+				},
+			},
+			wantInstructions: concatInstructions(
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpPop),
+			),
+		},
 	}
 	runCompilerTests(t, tests)
 }
