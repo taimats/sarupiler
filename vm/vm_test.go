@@ -208,3 +208,68 @@ func TestIndexExpressions(t *testing.T) {
 	}
 	runVmTests(t, tests)
 }
+
+func TestCallingFuncWithoutArgs(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `let fivePlusTen = fn() { 5 + 10 };
+			fivePlusTen();
+			`,
+			want: &object.Integer{Value: 15},
+		},
+		{
+			input: `
+		let one = fn() { 1; };
+		let two = fn() { 2; };
+		one() + two()
+		`,
+			want: &object.Integer{Value: 3},
+		},
+		{
+			input: `
+		let a = fn() { 1 };
+		let b = fn() { a() + 1 };
+		let c = fn() { b() + 1 };
+		c();
+		`,
+			want: &object.Integer{Value: 3},
+		},
+		{
+			input: `
+		let earlyExit = fn() { return 99; 100; };
+		earlyExit();
+		`,
+			want: &object.Integer{Value: 99},
+		},
+		{
+			input: `
+		let earlyExit = fn() { return 99; return 100; };
+		earlyExit();
+		`,
+			want: &object.Integer{Value: 99},
+		},
+	}
+	runVmTests(t, tests)
+}
+
+func TestFunctionsWithoutReturnValue(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+		let noReturn = fn() { };
+		noReturn();
+		`,
+			want: vm.Null,
+		},
+		{
+			input: `
+		let noReturn = fn() { };
+		let noReturnTwo = fn() { noReturn(); };
+		noReturn();
+		noReturnTwo();
+		`,
+			want: vm.Null,
+		},
+	}
+	runVmTests(t, tests)
+}

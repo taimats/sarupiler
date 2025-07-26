@@ -12,7 +12,6 @@ import (
 const (
 	StackSize  = 2048 //(2KB)
 	GlobalSize = 65536
-	MaxFrames  = 1024
 )
 
 var True = &object.Boolean{Value: true}
@@ -155,6 +154,27 @@ func (vm *VM) Run() error {
 			index := vm.pop()
 			left := vm.pop()
 			err := vm.executeIndexExpression(left, index)
+			if err != nil {
+				return err
+			}
+		case code.OpCall:
+			fn, ok := vm.stack[vm.sp-1].(*obj.CompiledFunction)
+			if !ok {
+				return fmt.Errorf("invalid function")
+			}
+			vm.pushFrame(NewFrame(fn))
+		case code.OpReturnValue:
+			returnValue := vm.pop()
+			vm.popFrame()
+			vm.pop()
+			err := vm.push(returnValue)
+			if err != nil {
+				return err
+			}
+		case code.OpReturn:
+			vm.popFrame()
+			vm.pop()
+			err := vm.push(Null)
 			if err != nil {
 				return err
 			}
@@ -375,17 +395,4 @@ func (vm *VM) pushFrame(f *Frame) {
 func (vm *VM) popFrame() *Frame {
 	vm.framesIndex--
 	return vm.frames[vm.framesIndex]
-}
-
-type Frame struct {
-	fn *obj.CompiledFunction
-	ip int //instruction pointer
-}
-
-func NewFrame(fn *obj.CompiledFunction) *Frame {
-	return &Frame{fn: fn, ip: -1}
-}
-
-func (f *Frame) Instructions() code.Instructions {
-	return f.fn.Instructions
 }
