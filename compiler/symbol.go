@@ -17,7 +17,7 @@ type SymbolTable struct {
 	Outer *SymbolTable
 
 	store          map[string]Symbol
-	numDefinitions int
+	numDefinitions int //the number of symbols
 }
 
 func NewSymbolTable() *SymbolTable {

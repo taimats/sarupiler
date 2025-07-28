@@ -229,8 +229,12 @@ func (c *Compiler) Compile(node ast.Node) error {
 		if !c.lastInstructionIs(code.OpReturnValue) {
 			c.emit(code.OpReturn)
 		}
+		numLocals := c.symbolTable.numDefinitions
 		ins := c.leaveScope()
-		compiledFn := &obj.CompiledFunction{Instructions: ins}
+		compiledFn := &obj.CompiledFunction{
+			Instructions: ins,
+			NumLocals:    numLocals,
+		}
 		c.emit(code.OpConstant, c.addConstant(compiledFn))
 	case *ast.ReturnStatement:
 		err := c.Compile(node.ReturnValue)
@@ -309,7 +313,7 @@ func (c *Compiler) currentInstructions() code.Instructions {
 	return c.scopes[c.scopeIndex].instructions
 }
 
-// EnterScope adds a new scope and increments scopeIndex by one.
+// EnterScope adds a new scope and creates a nested symbolTable under the hood.
 func (c *Compiler) enterScope() {
 	scope := CompilationScope{
 		instructions:        code.Instructions{},
@@ -321,7 +325,8 @@ func (c *Compiler) enterScope() {
 	c.symbolTable = NewEnclosedSymbolTable(c.symbolTable)
 }
 
-// LeaveScope returns a current instruction and decrements scopeIndex by one.
+// LeaveScope pops the current instruction off the scope stack,
+// and leaves a local scope for an outer one if it exists.
 func (c *Compiler) leaveScope() code.Instructions {
 	currentIns := c.currentInstructions()
 	c.scopes = c.scopes[:len(c.scopes)-1]

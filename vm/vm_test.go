@@ -273,3 +273,123 @@ func TestFunctionsWithoutReturnValue(t *testing.T) {
 	}
 	runVmTests(t, tests)
 }
+
+func TestCallingFunctionsWithBindings(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+		let one = fn() { let one = 1; one };
+		one();
+		`,
+			want: &object.Integer{Value: 1},
+		},
+		{
+			input: `
+		let oneAndTwo = fn() { let one = 1; let two = 2; one + two; };
+		oneAndTwo();
+		`,
+			want: &object.Integer{Value: 3},
+		},
+		{
+			input: `
+		let oneAndTwo = fn() { let one = 1; let two = 2; one + two; };
+		let threeAndFour = fn() { let three = 3; let four = 4; three + four; };
+		oneAndTwo() + threeAndFour();
+		`,
+			want: &object.Integer{Value: 10},
+		},
+		{
+			input: `
+		let firstFoobar = fn() { let foobar = 50; foobar; };
+		let secondFoobar = fn() { let foobar = 100; foobar; };
+		firstFoobar() + secondFoobar();
+		`,
+			want: &object.Integer{Value: 150},
+		},
+		{
+			input: `
+		let globalSeed = 50;
+		let minusOne = fn() {
+			let num = 1;
+			globalSeed - num;
+		}
+		let minusTwo = fn() {
+			let num = 2;
+			globalSeed - num;
+		}
+		minusOne() + minusTwo();
+		`,
+			want: &object.Integer{Value: 97},
+		},
+	}
+	runVmTests(t, tests)
+}
+
+// func TestCallingFunctionsWithArgumentsAndBindings(t *testing.T) {
+// 	tests := []vmTestCase{
+// 		{
+// 			input: `
+// 		let identity = fn(a) { a; };
+// 		identity(4);
+// 		`,
+// 			want: 4,
+// 		},
+// 		{
+// 			input: `
+// 		let sum = fn(a, b) { a + b; };
+// 		sum(1, 2);
+// 		`,
+// 			want: 3,
+// 		},
+// 		{
+// 			input: `
+// 		let sum = fn(a, b) {
+// 			let c = a + b;
+// 			c;
+// 		};
+// 		sum(1, 2);
+// 		`,
+// 			want: 3,
+// 		},
+// 		{
+// 			input: `
+// 		let sum = fn(a, b) {
+// 			let c = a + b;
+// 			c;
+// 		};
+// 		sum(1, 2) + sum(3, 4);`,
+// 			want: 10,
+// 		},
+// 		{
+// 			input: `
+// 		let sum = fn(a, b) {
+// 			let c = a + b;
+// 			c;
+// 		};
+// 		let outer = fn() {
+// 			sum(1, 2) + sum(3, 4);
+// 		};
+// 		outer();
+// 		`,
+// 			want: 10,
+// 		},
+// 		{
+// 			input: `
+// 		let globalNum = 10;
+
+// 		let sum = fn(a, b) {
+// 			let c = a + b;
+// 			c + globalNum;
+// 		};
+
+// 		let outer = fn() {
+// 			sum(1, 2) + sum(3, 4) + globalNum;
+// 		};
+
+// 		outer() + globalNum;
+// 		`,
+// 			want: 50,
+// 		},
+// 	}
+// 	runVmTests(t, tests)
+// }
