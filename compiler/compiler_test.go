@@ -588,7 +588,7 @@ func TestFunctionCalls(t *testing.T) {
 			},
 			wantInstructions: concatInstructions(
 				code.Make(code.OpConstant, 1),
-				code.Make(code.OpCall),
+				code.Make(code.OpCall, 0),
 				code.Make(code.OpPop),
 			),
 		},
@@ -610,64 +610,66 @@ func TestFunctionCalls(t *testing.T) {
 				code.Make(code.OpConstant, 1),
 				code.Make(code.OpSetGlobal, 0),
 				code.Make(code.OpGetGlobal, 0),
-				code.Make(code.OpCall),
+				code.Make(code.OpCall, 0),
 				code.Make(code.OpPop),
 			),
 		},
-		// 	{
-		// 		input: `
-		// 		let oneArg = fn(a) { a };
-		// 		oneArg(24);
-		// 		`,
-		// 		wantConstants: []object.Object{
-		// 			&obj.CompiledFunction{
-		// 				Instructions: concatInstructions(
-		// 					code.Make(code.OpGetLocal, 0),
-		// 					code.Make(code.OpReturnValue),
-		// 				),
-		// 			},
-		// 			&object.Integer{Value: 24},
-		// 		},
-		// 		wantInstructions: concatInstructions(
-		// 			code.Make(code.OpConstant, 0),
-		// 			code.Make(code.OpSetGlobal, 0),
-		// 			code.Make(code.OpGetGlobal, 0),
-		// 			code.Make(code.OpConstant, 1),
-		// 			code.Make(code.OpCall, 1),
-		// 			code.Make(code.OpPop),
-		// 		),
-		// 	},
-		// 	{
-		// 		input: `
-		// 		let manyArg = fn(a, b, c) { a; b; c };
-		// 		manyArg(24, 25, 26);
-		// 		`,
-		// 		wantConstants: []object.Object{
-		// 			&obj.CompiledFunction{
-		// 				Instructions: concatInstructions(
-		// 					code.Make(code.OpGetLocal, 0),
-		// 					code.Make(code.OpPop),
-		// 					code.Make(code.OpGetLocal, 1),
-		// 					code.Make(code.OpPop),
-		// 					code.Make(code.OpGetLocal, 2),
-		// 					code.Make(code.OpReturnValue),
-		// 				),
-		// 			},
-		// 			&object.Integer{Value: 24},
-		// 			&object.Integer{Value: 25},
-		// 			&object.Integer{Value: 26},
-		// 		},
-		// 		wantInstructions: concatInstructions(
-		// 			code.Make(code.OpConstant, 0),
-		// 			code.Make(code.OpSetGlobal, 0),
-		// 			code.Make(code.OpGetGlobal, 0),
-		// 			code.Make(code.OpConstant, 1),
-		// 			code.Make(code.OpConstant, 2),
-		// 			code.Make(code.OpConstant, 3),
-		// 			code.Make(code.OpCall, 3),
-		// 			code.Make(code.OpPop),
-		// 		),
-		// 	},
+		{
+			input: `
+				let oneArg = fn(a) { a };
+				oneArg(24);
+				`,
+			wantConstants: []object.Object{
+				&obj.CompiledFunction{
+					NumLocals: 1,
+					Instructions: concatInstructions(
+						code.Make(code.OpGetLocal, 0),
+						code.Make(code.OpReturnValue),
+					),
+				},
+				&object.Integer{Value: 24},
+			},
+			wantInstructions: concatInstructions(
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpCall, 1),
+				code.Make(code.OpPop),
+			),
+		},
+		{
+			input: `
+				let manyArg = fn(a, b, c) { a; b; c };
+				manyArg(24, 25, 26);
+				`,
+			wantConstants: []object.Object{
+				&obj.CompiledFunction{
+					NumLocals: 3,
+					Instructions: concatInstructions(
+						code.Make(code.OpGetLocal, 0),
+						code.Make(code.OpPop),
+						code.Make(code.OpGetLocal, 1),
+						code.Make(code.OpPop),
+						code.Make(code.OpGetLocal, 2),
+						code.Make(code.OpReturnValue),
+					),
+				},
+				&object.Integer{Value: 24},
+				&object.Integer{Value: 25},
+				&object.Integer{Value: 26},
+			},
+			wantInstructions: concatInstructions(
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpCall, 3),
+				code.Make(code.OpPop),
+			),
+		},
 	}
 	runCompilerTests(t, tests)
 }
@@ -682,6 +684,7 @@ func TestLetStatementScopes(t *testing.T) {
 			wantConstants: []object.Object{
 				&object.Integer{Value: 55},
 				&obj.CompiledFunction{
+					NumLocals: 0,
 					Instructions: concatInstructions(
 						code.Make(code.OpGetGlobal, 0),
 						code.Make(code.OpReturnValue),
@@ -704,6 +707,7 @@ func TestLetStatementScopes(t *testing.T) {
 			wantConstants: []object.Object{
 				&object.Integer{Value: 55},
 				&obj.CompiledFunction{
+					NumLocals: 1,
 					Instructions: concatInstructions(
 						code.Make(code.OpConstant, 0),
 						code.Make(code.OpSetLocal, 0),
@@ -728,6 +732,7 @@ func TestLetStatementScopes(t *testing.T) {
 				&object.Integer{Value: 55},
 				&object.Integer{Value: 77},
 				&obj.CompiledFunction{
+					NumLocals: 2,
 					Instructions: concatInstructions(
 						code.Make(code.OpConstant, 0),
 						code.Make(code.OpSetLocal, 0),

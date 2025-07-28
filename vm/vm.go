@@ -158,6 +158,7 @@ func (vm *VM) Run() error {
 				return err
 			}
 		case code.OpCall:
+			vm.currentFrame().ip += 1 //todo: should be fixed later on.
 			fn, ok := vm.stack[vm.sp-1].(*obj.CompiledFunction)
 			if !ok {
 				return fmt.Errorf("invalid function")

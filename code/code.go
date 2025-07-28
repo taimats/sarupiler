@@ -98,7 +98,7 @@ var definitions = map[Opcode]*Definition{
 	OpArray:         {"OpArray", []int{2}}, //the operand of OpArray is the number of elements of Array object.
 	OpHash:          {"OpHash", []int{2}},  //the operand of OpHash is the number of keys and values(2x mroe pairs).
 	OpIndex:         {"OpIndex", []int{}},
-	OpCall:          {"OpCall", []int{}},
+	OpCall:          {"OpCall", []int{1}}, //the operand of opCall is the number of arguments for functions
 	OpReturnValue:   {"OpReturnValue", []int{}},
 	OpReturn:        {"OpReturn", []int{}},
 	OpGetLocal:      {"OpGetLocal", []int{1}},
