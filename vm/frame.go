@@ -9,6 +9,7 @@ const (
 	MaxFrames = 1024
 )
 
+// a unit of executable function
 type Frame struct {
 	fn *obj.CompiledFunction
 	ip int //instruction pointer
