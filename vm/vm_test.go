@@ -325,71 +325,101 @@ func TestCallingFunctionsWithBindings(t *testing.T) {
 	runVmTests(t, tests)
 }
 
-// func TestCallingFunctionsWithArgumentsAndBindings(t *testing.T) {
-// 	tests := []vmTestCase{
-// 		{
-// 			input: `
-// 		let identity = fn(a) { a; };
-// 		identity(4);
-// 		`,
-// 			want: 4,
-// 		},
-// 		{
-// 			input: `
-// 		let sum = fn(a, b) { a + b; };
-// 		sum(1, 2);
-// 		`,
-// 			want: 3,
-// 		},
-// 		{
-// 			input: `
-// 		let sum = fn(a, b) {
-// 			let c = a + b;
-// 			c;
-// 		};
-// 		sum(1, 2);
-// 		`,
-// 			want: 3,
-// 		},
-// 		{
-// 			input: `
-// 		let sum = fn(a, b) {
-// 			let c = a + b;
-// 			c;
-// 		};
-// 		sum(1, 2) + sum(3, 4);`,
-// 			want: 10,
-// 		},
-// 		{
-// 			input: `
-// 		let sum = fn(a, b) {
-// 			let c = a + b;
-// 			c;
-// 		};
-// 		let outer = fn() {
-// 			sum(1, 2) + sum(3, 4);
-// 		};
-// 		outer();
-// 		`,
-// 			want: 10,
-// 		},
-// 		{
-// 			input: `
-// 		let globalNum = 10;
+func TestCallingFunctionsWithArgumentsAndBindings(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+		let identity = fn(a) { a; };
+		identity(4);
+		`,
+			want: &object.Integer{Value: 4},
+		},
+		{
+			input: `
+		let sum = fn(a, b) { a + b; };
+		sum(1, 2);
+		`,
+			want: &object.Integer{Value: 3},
+		},
+		{
+			input: `
+		let sum = fn(a, b) {
+			let c = a + b;
+			c;
+		};
+		sum(1, 2);
+		`,
+			want: &object.Integer{Value: 3},
+		},
+		{
+			input: `
+		let sum = fn(a, b) {
+			let c = a + b;
+			c;
+		};
+		sum(1, 2) + sum(3, 4);`,
+			want: &object.Integer{Value: 10},
+		},
+		{
+			input: `
+		let sum = fn(a, b) {
+			let c = a + b;
+			c;
+		};
+		let outer = fn() {
+			sum(1, 2) + sum(3, 4);
+		};
+		outer();
+		`,
+			want: &object.Integer{Value: 10},
+		},
+		{
+			input: `
+		let globalNum = 10;
 
-// 		let sum = fn(a, b) {
-// 			let c = a + b;
-// 			c + globalNum;
-// 		};
+		let sum = fn(a, b) {
+			let c = a + b;
+			c + globalNum;
+		};
 
-// 		let outer = fn() {
-// 			sum(1, 2) + sum(3, 4) + globalNum;
-// 		};
+		let outer = fn() {
+			sum(1, 2) + sum(3, 4) + globalNum;
+		};
 
-// 		outer() + globalNum;
-// 		`,
-// 			want: 50,
-// 		},
-// 	}
-// 	runVmTests(t, tests)
-// }
+		outer() + globalNum;
+		`,
+			want: &object.Integer{Value: 50},
+		},
+	}
+	runVmTests(t, tests)
+}
+
+func TestCallingFunctionsWithWrongArgs(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `fn() { 1; }(1);`,
+			want:  `wrong number of args: (got=1, want=0)`,
+		},
+		{
+			input: `fn(a) { a; }();`,
+			want:  `wrong number of args: (got=0, want=1)`,
+		},
+		{
+			input: `fn(a, b) { a + b; }(1);`,
+			want:  `wrong number of args: (got=1, want=2)`,
+		},
+	}
+	for _, tt := range tests {
+		p := parse(tt.input)
+		comp := compiler.New()
+		err := comp.Compile(p)
+		if err != nil {
+			t.Fatalf("failed to compile: (error:%s)", err)
+		}
+
+		sut := vm.New(comp.Bytecode())
+		err = sut.Run()
+		assert.Error(t, err)
+		assert.Equal(t, err.Error(), tt.want)
+	}
+}

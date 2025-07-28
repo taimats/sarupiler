@@ -158,14 +158,12 @@ func (vm *VM) Run() error {
 				return err
 			}
 		case code.OpCall:
-			vm.currentFrame().ip += 1 //todo: should be fixed later on.
-			fn, ok := vm.stack[vm.sp-1].(*obj.CompiledFunction)
-			if !ok {
-				return fmt.Errorf("invalid function")
+			numArgs := code.ReadUint8(ins[ip+1:])
+			vm.currentFrame().ip += 1
+			err := vm.callFunction(int(numArgs))
+			if err != nil {
+				return err
 			}
-			frame := NewFrame(fn, vm.sp)
-			vm.pushFrame(frame)
-			vm.sp = frame.bp + fn.NumLocals //allocating space on the stack
 		case code.OpReturnValue:
 			returnValue := vm.pop()
 			frame := vm.popFrame()
@@ -411,4 +409,18 @@ func (vm *VM) pushFrame(f *Frame) {
 func (vm *VM) popFrame() *Frame {
 	vm.framesIndex--
 	return vm.frames[vm.framesIndex]
+}
+
+func (vm *VM) callFunction(numArgs int) error {
+	fn, ok := vm.stack[vm.sp-1-numArgs].(*obj.CompiledFunction)
+	if !ok {
+		return fmt.Errorf("calling non-function")
+	}
+	if numArgs != fn.NumParameters {
+		return fmt.Errorf("wrong number of args: (got=%d, want=%d)", numArgs, fn.NumParameters)
+	}
+	frame := NewFrame(fn, vm.sp-numArgs)
+	vm.pushFrame(frame)
+	vm.sp = frame.bp + fn.NumLocals //allocating space on the stack
+	return nil
 }

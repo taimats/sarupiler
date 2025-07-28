@@ -621,7 +621,8 @@ func TestFunctionCalls(t *testing.T) {
 				`,
 			wantConstants: []object.Object{
 				&obj.CompiledFunction{
-					NumLocals: 1,
+					NumLocals:     1,
+					NumParameters: 1,
 					Instructions: concatInstructions(
 						code.Make(code.OpGetLocal, 0),
 						code.Make(code.OpReturnValue),
@@ -645,7 +646,8 @@ func TestFunctionCalls(t *testing.T) {
 				`,
 			wantConstants: []object.Object{
 				&obj.CompiledFunction{
-					NumLocals: 3,
+					NumLocals:     3,
+					NumParameters: 3,
 					Instructions: concatInstructions(
 						code.Make(code.OpGetLocal, 0),
 						code.Make(code.OpPop),
