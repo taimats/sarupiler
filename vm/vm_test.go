@@ -477,3 +477,132 @@ func TestBuiltinFunctions(t *testing.T) {
 	}
 	runVmTests(t, tests)
 }
+
+func TestClosures(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+		let newClosure = fn(a) {
+			fn() { a; };
+		};
+		let closure = newClosure(99);
+		closure();
+		`,
+			want: &object.Integer{Value: 99},
+		},
+		{
+			input: `
+		let newAdder = fn(a, b) {
+			fn(c) { a + b + c };
+		};
+		let adder = newAdder(1, 2);
+		adder(8);
+		`,
+			want: &object.Integer{Value: 11},
+		},
+		{
+			input: `
+		let newAdder = fn(a, b) {
+			let c = a + b;
+			fn(d) { c + d };
+		};
+		let adder = newAdder(1, 2);
+		adder(8);
+		`,
+			want: &object.Integer{Value: 11},
+		},
+		{
+			input: `
+		let newAdderOuter = fn(a, b) {
+			let c = a + b;
+			fn(d) {
+				let e = d + c;
+				fn(f) { e + f; };
+			};
+		};
+		let newAdderInner = newAdderOuter(1, 2)
+		let adder = newAdderInner(3);
+		adder(8);
+		`,
+			want: &object.Integer{Value: 14},
+		},
+		{
+			input: `
+		let a = 1;
+		let newAdderOuter = fn(b) {
+			fn(c) {
+				fn(d) { a + b + c + d };
+			};
+		};
+		let newAdderInner = newAdderOuter(2)
+		let adder = newAdderInner(3);
+		adder(8);
+		`,
+			want: &object.Integer{Value: 14},
+		},
+		{
+			input: `
+		let newClosure = fn(a, b) {
+			let one = fn() { a; };
+			let two = fn() { b; };
+			fn() { one() + two(); };
+		};
+		let closure = newClosure(9, 90);
+		closure();
+		`,
+			want: &object.Integer{Value: 99},
+		},
+	}
+	runVmTests(t, tests)
+}
+
+func TestRecursiveClosures(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+		let countDown = fn(x) {
+			if (x == 0) {
+				return 0;
+			} else {
+				countDown(x - 1);
+			}
+		};
+		countDown(1);
+		`,
+			want: &object.Integer{Value: 0},
+		},
+		{
+			input: `
+		let countDown = fn(x) {
+			if (x == 0) {
+				return 0;
+			} else {
+				countDown(x - 1);
+			}
+		};
+		let wrapper = fn() {
+			countDown(1);
+		};
+		wrapper();
+		`,
+			want: &object.Integer{Value: 0},
+		},
+		// {
+		// 	input: `
+		// let wrapper = fn() {
+		// 	let countDown = fn(x) {
+		// 		if (x == 0) {
+		// 			return 0;
+		// 		} else {
+		// 			countDown(x - 1);
+		// 		}
+		// 	};
+		// 	countDown(1);
+		// };
+		// wrapper();
+		// `,
+		// 	want: &object.Integer{Value: 0},
+		// },
+	}
+	runVmTests(t, tests)
+}
