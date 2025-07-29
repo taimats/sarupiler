@@ -16,6 +16,7 @@ func TestMake(t *testing.T) {
 		{code.OpConstant, []int{65534}, []byte{byte(code.OpConstant), 255, 254}},
 		{code.OpAdd, []int{}, []byte{byte(code.OpAdd)}},
 		{code.OpGetLocal, []int{255}, []byte{byte(code.OpGetLocal), 255}},
+		{code.OpClosure, []int{65534, 255}, []byte{byte(code.OpClosure), 255, 254, 255}},
 	}
 	a := assert.New(t)
 	for _, tt := range tests {
@@ -54,6 +55,7 @@ func TestReadOperands(t *testing.T) {
 	}{
 		{code.OpConstant, []int{65535}, 2},
 		{code.OpGetLocal, []int{255}, 1},
+		{code.OpClosure, []int{65534, 255}, 3},
 	}
 	a := assert.New(t)
 
