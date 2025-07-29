@@ -6,6 +6,7 @@ const (
 	GlobalScope  SymbolScope = "GLOBAL"
 	LocalScope   SymbolScope = "LOCAL"
 	BuiltinScope SymbolScope = "BUILTIN"
+	FreeScope    SymbolScope = "FREE"
 )
 
 type Symbol struct {
@@ -15,16 +16,16 @@ type Symbol struct {
 }
 
 type SymbolTable struct {
-	Outer *SymbolTable
-
+	Outer          *SymbolTable
+	FreeSymbols    []Symbol
 	store          map[string]Symbol
 	numDefinitions int //the number of symbols
 }
 
 func NewSymbolTable() *SymbolTable {
 	return &SymbolTable{
-		store:          make(map[string]Symbol),
-		numDefinitions: 0,
+		store:       make(map[string]Symbol),
+		FreeSymbols: []Symbol{},
 	}
 }
 
@@ -46,14 +47,20 @@ func (s *SymbolTable) Define(name string) Symbol {
 	return symbol
 }
 
-// Resolve fetches a symbol in the order of store and outer. If it find no symbol in the store field,
-// that means the symbolTable has no local bindings for that symbol.
-// Then it tries to search for outer field (that is, Global scope area).
+// Resolve fetches a symbol in the following orders: store, outer, free. If it find no symbol in the store,
+// that means the symbolTable has no local bindings for that symbol. Then it tries to search for outer field (that is, Global scope area).
 func (s *SymbolTable) Resolve(name string) (Symbol, bool) {
 	sym, ok := s.store[name]
 	if !ok && s.Outer != nil {
 		sym, ok = s.Outer.Resolve(name)
-		return sym, ok
+		if !ok {
+			return sym, ok //returning an empty Symbol
+		}
+		if sym.Scope == GlobalScope || sym.Scope == BuiltinScope {
+			return sym, ok
+		}
+		free := s.defineFree(sym)
+		return free, true
 	}
 	return sym, ok
 }
@@ -61,5 +68,13 @@ func (s *SymbolTable) Resolve(name string) (Symbol, bool) {
 func (s *SymbolTable) DefineBuiltin(index int, name string) Symbol {
 	sym := Symbol{Name: name, Index: index, Scope: BuiltinScope}
 	s.store[name] = sym
+	return sym
+}
+
+func (s *SymbolTable) defineFree(original Symbol) Symbol {
+	s.FreeSymbols = append(s.FreeSymbols, original)
+	sym := Symbol{Name: original.Name, Index: len(s.FreeSymbols) - 1}
+	sym.Scope = FreeScope
+	s.store[original.Name] = sym
 	return sym
 }

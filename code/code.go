@@ -35,6 +35,7 @@ const (
 	OpSetLocal
 	OpGetBuiltin
 	OpClosure
+	OpGetFree
 )
 
 type Instructions []byte
@@ -109,6 +110,7 @@ var definitions = map[Opcode]*Definition{
 	OpSetLocal:      {"OpSetLocal", []int{1}},
 	OpGetBuiltin:    {"OpGetBuiltin", []int{1}},
 	OpClosure:       {"OpClosure", []int{2, 1}}, //the first of the two operands is a constant index, and the second is the number of free variables.
+	OpGetFree:       {"OpGetFree", []int{1}},
 }
 
 func Lookup(op byte) (*Definition, error) {
