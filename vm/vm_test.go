@@ -423,3 +423,57 @@ func TestCallingFunctionsWithWrongArgs(t *testing.T) {
 		assert.Equal(t, err.Error(), tt.want)
 	}
 }
+
+func TestBuiltinFunctions(t *testing.T) {
+	tests := []vmTestCase{
+		{`len("")`, &object.Integer{Value: 0}},
+		{`len("four")`, &object.Integer{Value: 4}},
+		{`len("hello world")`, &object.Integer{Value: 11}},
+		{
+			`len(1)`,
+			&object.Error{
+				Message: "unsupported type for len(): (type=INTEGER)",
+			},
+		},
+		{`len("one", "two")`,
+			&object.Error{
+				Message: "wrong number of args: (got=2 want=1)",
+			},
+		},
+		{`len([1, 2, 3])`, &object.Integer{Value: 3}},
+		{`len([])`, &object.Integer{Value: 0}},
+		{`puts("hello", "world!")`, vm.Null},
+		{`first([1, 2, 3])`, &object.Integer{Value: 1}},
+		{`first([])`, vm.Null},
+		{`first(1)`,
+			&object.Error{
+				Message: "an arg must be ARRAY_OBJ: (got=INTEGER)",
+			},
+		},
+		{`last([1, 2, 3])`, &object.Integer{Value: 3}},
+		{`last([])`, vm.Null},
+		{`last(1)`,
+			&object.Error{
+				Message: "an arg must be ARRAY_OBJ: (got=INTEGER)",
+			},
+		},
+		{`rest([1, 2, 3])`, &object.Array{
+			Elements: []object.Object{
+				&object.Integer{Value: 2},
+				&object.Integer{Value: 3},
+			},
+		}},
+		{`rest([])`, vm.Null},
+		{`push([], 1)`, &object.Array{
+			Elements: []object.Object{
+				&object.Integer{Value: 1},
+			}},
+		},
+		{`push(1, 1)`,
+			&object.Error{
+				Message: "an arg must be ARRAY_OBJ: (got=INTEGER)",
+			},
+		},
+	}
+	runVmTests(t, tests)
+}

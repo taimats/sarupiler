@@ -69,7 +69,7 @@ var Builtins = []struct {
 		}},
 	},
 	{
-		"reset",
+		"rest",
 		&object.Builtin{Fn: func(args ...object.Object) object.Object {
 			if len(args) != 1 {
 				return newError("wrong number of args: (got=%d want=1)", len(args))
@@ -98,7 +98,7 @@ var Builtins = []struct {
 			}
 			arr := args[0].(*object.Array)
 			length := len(arr.Elements)
-			if length > 0 {
+			if length >= 0 {
 				newElems := make([]object.Object, length+1)
 				copy(newElems, arr.Elements)
 				newElems[length] = args[1]
